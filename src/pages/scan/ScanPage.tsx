@@ -2,6 +2,7 @@ import {useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {VideoCameraSlashIcon} from '@heroicons/react/20/solid';
 import QrScannerPlugin, {
+  ExternalQRScannerDevice,
   FileUploadScanner,
   scanFile,
 } from '../../Components/QrScanner/QrScannerPlugin';
@@ -35,11 +36,15 @@ export default function ScanPage() {
     setProcessing(true);
 
     let scannedData;
-    try {
-      scannedData = JSON.parse(decodedText);
-    } catch (e) {
-      handleError(e, 'Error parsing the QRCode data');
-      return;
+    if (decodedText !== '' && !isNaN(Number(decodedText))) {
+      scannedData = decodedText;
+    } else {
+      try {
+        scannedData = JSON.parse(decodedText);
+      } catch (e) {
+        handleError(e, 'Error parsing the QRCode data');
+        return;
+      }
     }
 
     scannedData = camelizeKeys(scannedData);
@@ -133,6 +138,13 @@ export default function ScanPage() {
         <div className="mt-6">
           <FileUploadScanner onFileUpload={onFileUpload} />
         </div>
+      )}
+      {(isDesktop || import.meta.env.DEV) && (
+        <ExternalQRScannerDevice
+          qrCodeSuccessCallback={onScanResult}
+          processing={processing}
+          setProcessing={setProcessing}
+        />
       )}
     </div>
   );
